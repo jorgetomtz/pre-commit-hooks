@@ -1,0 +1,6 @@
+-   id: check-version-bumped
+    name: check-version-bumped
+    description: Check if version has been bumped.
+    entry: check-version-bumped
+    language: python
+    types: [python]

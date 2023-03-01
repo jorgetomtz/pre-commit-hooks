@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "custom_hooks"
+version = "1.0.0"
+description = "Custom pre-commit hooks"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "gitpython"
+]
+
+[project.optional-dependencies]
+dev = []
+
+[project.scripts]
+check-version-bumped = "custom_hooks.check_version_bumped:main"

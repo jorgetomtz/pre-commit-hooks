@@ -11,15 +11,15 @@ import typing
 import astroid
 
 
-def _check_only_modules_imported(filename: str) -> int:
+def _check_only_modules_imported(filename: str, skip_modules: list[str]) -> int:
     result = 0
     with open(filename) as f:
         content = f.read()
     tree = astroid.parse(content)
     for node in tree.body:
         if isinstance(node, astroid.ImportFrom):
-            # Skip __future__ imports
-            if node.modname == "__future__":
+            # Skip user's configured modules
+            if node.modname in skip_modules:
                 continue
             try:
                 imported_module = node.do_import_module(node.modname)
@@ -44,10 +44,10 @@ def _check_only_modules_imported(filename: str) -> int:
     return result
 
 
-def check_only_modules_imported(filenames: list[str]) -> int:
+def check_only_modules_imported(filenames: list[str], skip_modules: list[str]) -> int:
     result = 0
     for filename in filenames:
-        result = _check_only_modules_imported(filename) or result
+        result = _check_only_modules_imported(filename, skip_modules) or result
     return result
 
 
@@ -58,8 +58,14 @@ def main(argv: typing.Sequence[str] | None = None) -> int:
         nargs="*",
         help="Filenames pre-commit believes are changed.",
     )
+    parser.add_argument(
+        "-s",
+        "--skip-modules",
+        type=lambda x: x.split(','),
+        help="Comma-separated list of modules to skip.",
+    )
     args = parser.parse_args(argv)
-    return check_only_modules_imported(args.filenames)
+    return check_only_modules_imported(args.filenames, args.skip_modules)
 
 
 if __name__ == "__main__":

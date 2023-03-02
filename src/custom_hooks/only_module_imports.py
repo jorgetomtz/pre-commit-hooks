@@ -34,15 +34,6 @@ def _check_only_modules_imported(filename: str, skip_modules: list[str]) -> int:
                             f"in '{filename}:{node.end_lineno}'"
                         )
                         result = 1
-                    else:
-                        # In case where imports are lowercase and we
-                        # fail to import them, print of potential issue
-                        # but do not fail. This should allow users
-                        # to set verbose: true and see this output.
-                        print(
-                            f"Potential non-module import: '{node.as_string()}' "
-                            f"in '{filename}:{node.end_lineno}'"
-                        )
                 continue
 
             for name, _alias in node.names:

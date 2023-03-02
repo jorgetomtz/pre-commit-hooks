@@ -61,7 +61,7 @@ def main(argv: typing.Sequence[str] | None = None) -> int:
     parser.add_argument(
         "-s",
         "--skip-modules",
-        type=lambda x: x.split(','),
+        type=lambda x: x.split(","),
         help="Comma-separated list of modules to skip.",
     )
     args = parser.parse_args(argv)

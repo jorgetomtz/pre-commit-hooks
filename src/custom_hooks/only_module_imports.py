@@ -24,6 +24,25 @@ def _check_only_modules_imported(filename: str, skip_modules: list[str]) -> int:
             try:
                 imported_module = node.do_import_module(node.modname)
             except astroid.AstroidBuildingException:
+                # If we fail to import, we use the convention
+                # that modules are all lowercase to catch some
+                # other cases of object imports
+                for name, _alias in node.names:
+                    if name[0].isupper():
+                        print(
+                            f"Found non-module import: '{node.as_string()}' "
+                            f"in '{filename}:{node.end_lineno}'"
+                        )
+                        result = 1
+                    else:
+                        # In case where imports are lowercase and we
+                        # fail to import them, print of potential issue
+                        # but do not fail. This should allow users
+                        # to set verbose: true and see this output.
+                        print(
+                            f"Potential non-module import: '{node.as_string()}' "
+                            f"in '{filename}:{node.end_lineno}'"
+                        )
                 continue
 
             for name, _alias in node.names:

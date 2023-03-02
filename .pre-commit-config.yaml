@@ -38,3 +38,4 @@ repos:
     hooks:
       - id: only-module-imports
         args: ["-s", "__future__"]
+        verbose: true

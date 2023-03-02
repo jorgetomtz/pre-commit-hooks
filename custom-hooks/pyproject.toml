@@ -9,6 +9,7 @@ description = "Custom pre-commit hooks"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
+    "astroid",
     "gitpython"
 ]
 
@@ -17,3 +18,4 @@ dev = ["pytest"]
 
 [project.scripts]
 check-version-bumped = "custom_hooks.check_version_bumped:main"
+only-module-imports = "custom_hooks.only_module_imports:main"

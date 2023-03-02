@@ -5,4 +5,10 @@
     language: python
     types: [python]
     require_serial: true
-    verbose: true
+
+-   id: only-module-imports
+    name: only-module-imports
+    description: Check if only modules imported.
+    entry: only-module-imports
+    language: python
+    types: [python]

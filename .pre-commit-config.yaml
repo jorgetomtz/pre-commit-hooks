@@ -34,6 +34,6 @@ repos:
       - id: black
 
   - repo: https://github.com/jorgetomtz/pre-commit-hooks
-    rev: v0.0.1
+    rev: v0.0.2
     hooks:
-      - id: only-module-imports 
+      - id: only-module-imports

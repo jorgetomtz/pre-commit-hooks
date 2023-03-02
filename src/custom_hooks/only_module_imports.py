@@ -3,6 +3,8 @@ Hook to verify only modules are imported.
 
 This is adapted from https://stackoverflow.com/a/45390670
 """
+from __future__ import annotations
+
 import argparse
 import typing
 
@@ -16,6 +18,9 @@ def _check_only_modules_imported(filename: str) -> int:
     tree = astroid.parse(content)
     for node in tree.body:
         if isinstance(node, astroid.ImportFrom):
+            # Skip __future__ imports
+            if node.modename == "__future__":
+                continue
             try:
                 imported_module = node.do_import_module(node.modname)
             except astroid.AstroidBuildingException:

@@ -19,7 +19,7 @@ def _check_only_modules_imported(filename: str) -> int:
     for node in tree.body:
         if isinstance(node, astroid.ImportFrom):
             # Skip __future__ imports
-            if node.modename == "__future__":
+            if node.modname == "__future__":
                 continue
             try:
                 imported_module = node.do_import_module(node.modname)

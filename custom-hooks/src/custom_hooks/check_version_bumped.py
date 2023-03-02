@@ -5,7 +5,7 @@ import typing
 
 import git
 
-VERSION_FILES = ["pyproject.toml", "setup.cfg", "setup.py"]
+VERSION_FILES = ["pyproject.toml", "setup.cfg"]
 
 
 def check_version_file(version_file: str):
@@ -54,7 +54,6 @@ def check_version_bump(filenames: list[str]) -> int:
                 version_file_path = os.path.join(dirname, version_file)
                 if os.path.exists(version_file_path):
                     result = check_version_file(version_file_path) or result
-                    break
             seen.add(dirname)
     return result
 

@@ -32,10 +32,3 @@ repos:
     rev: 23.1.0
     hooks:
       - id: black
-
-  - repo: local
-    hooks:
-      - id: check-version-bumped
-        name: check-version-bumped
-        entry: check-version-bumped
-        language: python

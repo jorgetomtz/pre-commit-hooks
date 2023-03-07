@@ -43,23 +43,25 @@ def check_copyright(
             if second is not None:
                 if not second.endswith(year):
                     if update:
+                        print(f"Updating copyright: {filename}")
                         new_copyright = m.group(0).replace(second, f", {year}")
                         content = copyright_rgx.sub(new_copyright, content)
                         write_file(filename, content)
                     else:
-                        print(f"Copyright is out-of-date for {filename}")
+                        print(f"Copyright is out-of-date: {filename}")
                     return 1
             else:
                 if update:
+                    print(f"Updating copyright: {filename}")
                     new_copyright = m.group(0).replace(first, f"{first}, {year}")
                     content = copyright_rgx.sub(new_copyright, content)
                     write_file(filename, content)
                 else:
-                    print(f"Copyright is out-of-date for {filename}")
+                    print(f"Copyright is out-of-date: {filename}")
                 return 1
         return 0
     else:
-        print(f"Copyright missing for file {filename}")
+        print(f"Missing copyright for file {filename}")
         return 1
 
 

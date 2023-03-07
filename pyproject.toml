@@ -18,4 +18,5 @@ dev = ["pytest"]
 
 [project.scripts]
 check-version-bumped = "custom_hooks.check_version_bumped:main"
+copyright-checker = "custom_hooks.copyright_checker:main"
 only-module-imports = "custom_hooks.only_module_imports:main"

@@ -12,3 +12,9 @@
     entry: only-module-imports
     language: python
     types: [python]
+
+-   id: copyright-check
+    name: copyright-check
+    description: Check if copyrights are updated.
+    entry: copyright-checker
+    language: python

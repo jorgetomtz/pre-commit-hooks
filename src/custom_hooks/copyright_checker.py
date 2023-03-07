@@ -12,7 +12,7 @@ import git
 
 COPYRIGHT = "Copyright (c) {year} by {owner}. All rights reserved."
 
-HASH_ENDINGS = {"cfg", "conf", "j2", "js", "py", "tf", "yaml", "yml"}
+HASH_ENDINGS = {"cfg", "conf", "py", "tf", "yaml", "yml"}
 
 PLAIN_ENDINGS = {"md"}
 

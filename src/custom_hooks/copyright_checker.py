@@ -10,6 +10,14 @@ import typing
 
 import git
 
+COPYRIGHT = "Copyright (c) {year} by {owner}. All rights reserved."
+
+HASH_ENDINGS = {"cfg", "conf", "py", "tf", "yaml", "yml"}
+
+PLAIN_ENDINGS = {"md"}
+
+STAR_ENDINGS = {"gradle", "groovy", "java", "properties"}
+
 
 def write_file(filename: str, content: str) -> None:
     """
@@ -17,6 +25,38 @@ def write_file(filename: str, content: str) -> None:
     """
     with open(filename, "w") as f:
         f.write(content)
+
+
+def wrap_copyright(filename: str, new_copyright: str) -> str:
+    """
+    Wrap copyright into ending specific comments.
+    """
+    ending = filename.split(".")[-1]
+    wrapped = ""
+    if ending in HASH_ENDINGS:
+        wrapped = f"#\n# {new_copyright}\n#\n\n"
+    elif ending in PLAIN_ENDINGS:
+        wrapped = new_copyright
+    elif ending in STAR_ENDINGS:
+        wrapped = f"/*\n * {new_copyright}\n */\n\n"
+    # TODO: Add other cases here
+    return wrapped
+
+
+def insert_missing_copyright(
+    filename: str, content: str, year: str, owner: str
+) -> None:
+    """
+    Insert missing copyright.
+    """
+    new_copyright = COPYRIGHT.format(year=year, owner=owner)
+    wrapped = wrap_copyright(filename, new_copyright)
+    if wrapped:
+        print(f"Adding copyright to {filename}")
+        content = wrapped + content
+        write_file(filename, content)
+    else:
+        print(f"Missing copyright for file {filename}")
 
 
 def check_copyright(
@@ -61,7 +101,10 @@ def check_copyright(
                 return 1
         return 0
     else:
-        print(f"Missing copyright for file {filename}")
+        if update:
+            insert_missing_copyright(filename, content, year, owner)
+        else:
+            print(f"Missing copyright for file {filename}")
         return 1
 
 
@@ -87,6 +130,7 @@ def main(argv: typing.Sequence[str] | None = None) -> int:
     parser.add_argument(
         "-o",
         "--owner",
+        required=True,
         help="Owner of the license.",
     )
     parser.add_argument(

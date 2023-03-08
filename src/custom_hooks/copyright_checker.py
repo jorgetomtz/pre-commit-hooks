@@ -15,7 +15,7 @@ COPYRIGHT = "Copyright (c) {year} by {owner}. All rights reserved."
 
 HASH_ENDINGS = {"cfg", "conf", "py", "sh", "tf", "yaml", "yml"}
 
-PLAIN_ENDINGS = {"md"}
+MD_ENDINGS = {"md"}
 
 STAR_ENDINGS = {"gradle", "groovy", "java", "properties"}
 
@@ -54,11 +54,12 @@ def wrap_copyright(filename: str, new_copyright: str) -> str:
     wrapped = ""
     ending = filename.split(".")[-1]
     if ending in HASH_ENDINGS:
-        wrapped = f"#\n# {new_copyright}\n#\n\n"
-    elif ending in PLAIN_ENDINGS:
-        wrapped = new_copyright
+        wrapped = f"#\n# {new_copyright}\n#\n"
+    elif ending in MD_ENDINGS:
+        escaped_copyright = new_copyright.replace("(", r"\(").replace(")", r"\)")
+        wrapped = f"[//]: ({escaped_copyright})\n"
     elif ending in STAR_ENDINGS:
-        wrapped = f"/*\n * {new_copyright}\n */\n\n"
+        wrapped = f"/*\n * {new_copyright}\n */\n"
     # TODO: Add other cases here
     return wrapped
 
@@ -78,7 +79,8 @@ def insert_missing_copyright(
             index = content.find("\n") + 1
             content = content[:index] + wrapped + content[index:]
         else:
-            content = wrapped + content
+            new_line = "\n" if content else ""
+            content = wrapped + new_line + content
         write_file(filename, content)
     else:
         print(f"Missing copyright for file {filename}")
@@ -98,7 +100,7 @@ def check_copyright(
         return 0
 
     copyright_rgx = re.compile(
-        rf"Copyright \(c\) ([0-9]{{4}})(, [0-9]{{4}})? by {owner}"
+        rf"Copyright \\?\(c\\?\) ([0-9]{{4}})(, [0-9]{{4}})? by {owner}"
     )
     m = copyright_rgx.search(content)
     if m:

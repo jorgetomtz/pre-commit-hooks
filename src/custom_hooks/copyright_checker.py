@@ -26,8 +26,11 @@ def read_file(filename: str) -> str | None:
     """
     content = None
     if os.access(filename, os.R_OK):
-        with open(filename, encoding="utf-8") as f:
-            content = f.read()
+        try:
+            with open(filename, encoding="utf-8") as f:
+                content = f.read()
+        except UnicodeDecodeError:
+            print(f"Cannot decode {filename} with 'utf-8'. Skipping.")
     else:
         print(f"Cannot read {filename}. Skipping.")
     return content

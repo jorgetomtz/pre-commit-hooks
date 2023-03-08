@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import os
 import re
 import typing
 
@@ -12,7 +13,7 @@ import git
 
 COPYRIGHT = "Copyright (c) {year} by {owner}. All rights reserved."
 
-HASH_ENDINGS = {"cfg", "conf", "py", "tf", "yaml", "yml"}
+HASH_ENDINGS = {"cfg", "conf", "py", "sh", "tf", "yaml", "yml"}
 
 PLAIN_ENDINGS = {"md"}
 
@@ -23,16 +24,19 @@ def write_file(filename: str, content: str) -> None:
     """
     Write content to file.
     """
-    with open(filename, "w") as f:
-        f.write(content)
+    if os.access(filename, os.W_OK):
+        with open(filename, "w") as f:
+            f.write(content)
+    else:
+        print(f"Cannot write {filename}. Skipping.")
 
 
 def wrap_copyright(filename: str, new_copyright: str) -> str:
     """
     Wrap copyright into ending specific comments.
     """
-    ending = filename.split(".")[-1]
     wrapped = ""
+    ending = filename.split(".")[-1]
     if ending in HASH_ENDINGS:
         wrapped = f"#\n# {new_copyright}\n#\n\n"
     elif ending in PLAIN_ENDINGS:
@@ -53,7 +57,12 @@ def insert_missing_copyright(
     wrapped = wrap_copyright(filename, new_copyright)
     if wrapped:
         print(f"Adding copyright to {filename}")
-        content = wrapped + content
+        if content.startswith("#!"):
+            # Preserve shebang
+            index = content.find("\n") + 1
+            content = content[:index] + wrapped + content[index:]
+        else:
+            content = wrapped + content
         write_file(filename, content)
     else:
         print(f"Missing copyright for file {filename}")
@@ -72,8 +81,12 @@ def check_copyright(
         rf"Copyright \(c\) ([0-9]{{4}})(, [0-9]{{4}})? by {owner}"
     )
     content = ""
-    with open(filename) as f:
-        content = f.read()
+    if os.access(filename, os.R_OK):
+        with open(filename, encoding="utf-8") as f:
+            content = f.read()
+    else:
+        print(f"Cannot read {filename}. Skipping.")
+        return 0
     m = copyright_rgx.search(content)
     if m:
         changes = repo.git.diff(["@{upstream}", "@", filename])

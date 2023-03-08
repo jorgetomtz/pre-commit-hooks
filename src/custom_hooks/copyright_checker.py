@@ -20,6 +20,19 @@ PLAIN_ENDINGS = {"md"}
 STAR_ENDINGS = {"gradle", "groovy", "java", "properties"}
 
 
+def read_file(filename: str) -> str | None:
+    """
+    Read file and return content.
+    """
+    content = None
+    if os.access(filename, os.R_OK):
+        with open(filename, encoding="utf-8") as f:
+            content = f.read()
+    else:
+        print(f"Cannot read {filename}. Skipping.")
+    return content
+
+
 def write_file(filename: str, content: str) -> None:
     """
     Write content to file.
@@ -77,16 +90,13 @@ def check_copyright(
     If copyright does not exist fail.
     If file has been modified and copyright doesn't include current year fail.
     """
+    content = read_file(filename)
+    if content is None:
+        return 0
+
     copyright_rgx = re.compile(
         rf"Copyright \(c\) ([0-9]{{4}})(, [0-9]{{4}})? by {owner}"
     )
-    content = ""
-    if os.access(filename, os.R_OK):
-        with open(filename, encoding="utf-8") as f:
-            content = f.read()
-    else:
-        print(f"Cannot read {filename}. Skipping.")
-        return 0
     m = copyright_rgx.search(content)
     if m:
         changes = repo.git.diff(["@{upstream}", "@", filename])

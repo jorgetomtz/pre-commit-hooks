@@ -91,7 +91,6 @@ def get_index_to_preserve_special_lines(content: str) -> int:
         index = first_line_index
         second_line_index = content[first_line_index:].find("\n") + first_line_index + 1
         second_line = content[first_line_index:second_line_index]
-
         if encoding_rgx.match(second_line):
             # Preserve coding in second line
             index = second_line_index

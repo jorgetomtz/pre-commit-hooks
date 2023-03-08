@@ -37,4 +37,12 @@ repos:
     rev: v0.0.5
     hooks:
       - id: only-module-imports
-        args: ["-s", "__future__"]
+        args: ["-s", "__future__,custom_hooks"]
+
+  - repo: local
+    hooks:
+      - id: unit-tests
+        name: unit-tests
+        entry: tox
+        language: system
+        pass_filenames: false

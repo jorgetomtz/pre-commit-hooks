@@ -13,7 +13,21 @@ import git
 
 COPYRIGHT = "Copyright (c) {year} by {owner}. All rights reserved."
 
-HASH_ENDINGS = {"cfg", "conf", "py", "sh", "tf", "yaml", "yml"}
+HASH_ENDINGS = {
+    "cfg",
+    "conf",
+    "Dockerfile",
+    "hcl",
+    "ini",
+    "Makefile",
+    "ps1",
+    "py",
+    "sh",
+    "txt",
+    "tf",
+    "yaml",
+    "yml",
+}
 
 MD_ENDINGS = {"md"}
 
@@ -57,11 +71,30 @@ def wrap_copyright(filename: str, new_copyright: str) -> str:
         wrapped = f"#\n# {new_copyright}\n#\n"
     elif ending in MD_ENDINGS:
         escaped_copyright = new_copyright.replace("(", r"\(").replace(")", r"\)")
-        wrapped = f"[//]: ({escaped_copyright})\n"
+        wrapped = f"[//]: # ({escaped_copyright})\n"
     elif ending in STAR_ENDINGS:
         wrapped = f"/*\n * {new_copyright}\n */\n"
     # TODO: Add other cases here
     return wrapped
+
+
+def get_index_to_preserve_special_lines(content: str) -> int:
+    """
+    Get index to preserve special lines used for shebang or encoding.
+    """
+    index = 0
+    first_line_index = content.find("\n") + 1
+    first_line = content[:first_line_index]
+    encoding_rgx = re.compile(r"^[ \t\f]*#.*?coding[:=][ \t]*([-_.a-zA-Z0-9]+)")
+    if content.startswith("#!") or encoding_rgx.match(first_line):
+        # Preserve shebang or coding in first line
+        index = first_line_index
+        second_line_index = content[first_line_index:].find("\n") + first_line_index + 1
+        second_line = content[first_line_index:second_line_index]
+        if encoding_rgx.match(second_line):
+            # Preserve coding in second line
+            index = second_line_index
+    return index
 
 
 def insert_missing_copyright(
@@ -74,9 +107,8 @@ def insert_missing_copyright(
     wrapped = wrap_copyright(filename, new_copyright)
     if wrapped:
         print(f"Adding copyright to {filename}")
-        if content.startswith("#!"):
-            # Preserve shebang
-            index = content.find("\n") + 1
+        index = get_index_to_preserve_special_lines(content)
+        if index != 0:
             content = content[:index] + wrapped + content[index:]
         else:
             new_line = "\n" if content else ""
@@ -162,14 +194,15 @@ def main(argv: typing.Sequence[str] | None = None) -> int:
         help="Owner of the license.",
     )
     parser.add_argument(
-        "-u",
-        "--update",
-        default=True,
+        "-n",
+        "--no-update",
+        default=False,
         action="store_true",
-        help="Whether to update license.",
+        help="Whether to skip copyright update.",
     )
     args = parser.parse_args(argv)
-    return copyright_checker(args.filenames, args.owner, args.update)
+    update = not args.no_update
+    return copyright_checker(args.filenames, args.owner, update)
 
 
 if __name__ == "__main__":

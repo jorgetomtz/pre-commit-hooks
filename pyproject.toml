@@ -14,7 +14,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-xdist"
+]
 
 [project.scripts]
 check-version-bumped = "custom_hooks.check_version_bumped:main"

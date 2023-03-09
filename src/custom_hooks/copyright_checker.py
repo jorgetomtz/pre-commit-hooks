@@ -80,8 +80,8 @@ def wrap_copyright(filename: str, new_copyright: str) -> str:
 
 def get_index_after_special_lines(content: str) -> int:
     """
-    Get index after special lines used to preserve shebang
-    or encoding lines.
+    Get index after special lines. Used to preserve shebang
+    and/or encoding lines.
 
     TODO: Extend this function to handle other special first lines.
     """

@@ -20,6 +20,7 @@ HASH_ENDINGS = {
     "hcl",
     "ini",
     "Makefile",
+    "properties",
     "ps1",
     "py",
     "sh",
@@ -31,7 +32,7 @@ HASH_ENDINGS = {
 
 MD_ENDINGS = {"md"}
 
-STAR_ENDINGS = {"gradle", "groovy", "java", "properties"}
+STAR_ENDINGS = {"gradle", "groovy", "java"}
 
 
 def read_file(filename: str) -> str | None:

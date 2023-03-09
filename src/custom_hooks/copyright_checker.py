@@ -78,15 +78,19 @@ def wrap_copyright(filename: str, new_copyright: str) -> str:
     return wrapped
 
 
-def get_index_to_preserve_special_lines(content: str) -> int:
+def get_index_after_special_lines(content: str) -> int:
     """
-    Get index to preserve special lines used for shebang or encoding.
+    Get index after special lines used to preserve shebang
+    or encoding lines.
+
+    TODO: Extend this function to handle other special first lines.
     """
     index = 0
     first_line_index = content.find("\n") + 1
     first_line = content[:first_line_index]
+    # Encoding regex used by https://peps.python.org/pep-0263/
     encoding_rgx = re.compile(r"^[ \t\f]*#.*?coding[:=][ \t]*([-_.a-zA-Z0-9]+)")
-    if content.startswith("#!") or encoding_rgx.match(first_line):
+    if first_line.startswith("#!") or encoding_rgx.match(first_line):
         # Preserve shebang or coding in first line
         index = first_line_index
         second_line_index = content[first_line_index:].find("\n") + first_line_index + 1
@@ -107,7 +111,7 @@ def insert_missing_copyright(
     wrapped = wrap_copyright(filename, new_copyright)
     if wrapped:
         print(f"Adding copyright to {filename}")
-        index = get_index_to_preserve_special_lines(content)
+        index = get_index_after_special_lines(content)
         if index != 0:
             content = content[:index] + wrapped + content[index:]
         else:
@@ -116,6 +120,20 @@ def insert_missing_copyright(
         write_file(filename, content)
     else:
         print(f"Missing copyright for file {filename}")
+
+
+def get_changes(repo: git.Repo, filename: str) -> str:
+    """
+    Get the changes committed for a file.
+    """
+    changes = ""
+    try:
+        changes = repo.git.diff(["@{upstream}", "@", filename])
+    except git.exc.GitCommandError:
+        # Upstream is not set or running on detached HEAD
+        # Fall back to comparing against previous commit
+        changes = repo.git.diff(["HEAD~", filename])
+    return changes
 
 
 def check_copyright(
@@ -136,7 +154,7 @@ def check_copyright(
     )
     m = copyright_rgx.search(content)
     if m:
-        changes = repo.git.diff(["@{upstream}", "@", filename])
+        changes = get_changes(repo, filename)
         first = m.group(1)
         if changes and year != first:
             second = m.group(2)

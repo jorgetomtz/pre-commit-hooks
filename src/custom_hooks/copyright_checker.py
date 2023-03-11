@@ -26,6 +26,7 @@ HASH_ENDINGS = {
     "sh",
     "txt",
     "tf",
+    "toml",
     "yaml",
     "yml",
 }

@@ -33,7 +33,7 @@ HASH_ENDINGS = {
 
 MD_ENDINGS = {"md"}
 
-STAR_ENDINGS = {"gradle", "groovy", "java"}
+STAR_ENDINGS = {"gradle", "groovy", "java", "js", "ts"}
 
 
 def read_file(filename: str) -> str | None:

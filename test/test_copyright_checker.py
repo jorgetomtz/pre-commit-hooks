@@ -65,6 +65,23 @@ def test_old_range_copyright_py(capsys, tmpdir):
     assert f"Updating copyright: {f}" in cap.out
 
 
+def test_multiple_old_range_copyright_py(capsys, tmpdir):
+    f = tmpdir / "a.py"
+    f.write(
+        "#\n# Copyright (c) 2000, 2022 by fake. All rights reserved.\n"
+        "#\nhello\n# Copyright (c) 2000, 2022 by fake. All rights reserved."
+    )
+    copyright_checker.main(["-o", "fake", f"{f}"])
+    out = f.read()
+    year = str(datetime.date.today().year)
+    assert (
+        f"#\n# Copyright (c) 2000, {year} by fake. All rights reserved.\n"
+        "#\nhello\n# Copyright (c) 2000, 2022 by fake. All rights reserved." in out
+    )
+    cap = capsys.readouterr()
+    assert f"Updating copyright: {f}" in cap.out
+
+
 def test_old_copyright_py_no_changes(tmpdir, fake_git_no_changes):
     f = tmpdir / "a.py"
     t = "#\n# Copyright (c) 2000 by fake. All rights reserved.\n#\n"

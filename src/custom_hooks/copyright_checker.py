@@ -174,7 +174,7 @@ def check_copyright(
                 if update:
                     print(f"Updating copyright: {filename}")
                     new_copyright = m.group(0).replace(first, f"{first}, {year}")
-                    content = copyright_rgx.sub(new_copyright, content)
+                    content = copyright_rgx.sub(new_copyright, content, 1)
                     write_file(filename, content)
                 else:
                     print(f"Copyright is out-of-date: {filename}")

@@ -99,6 +99,23 @@ def test_multiple_old_range_copyright_py(capsys, tmpdir):
     assert f"Updating copyright: {f}" in cap.out
 
 
+def test_multiple_one_new_one_old_copyright_py(capsys, tmpdir):
+    year = str(datetime.date.today().year)
+    f = tmpdir / "a.py"
+    f.write(
+        "#\n# Copyright (c) 2000, 2022 by fake. All rights reserved.\n"
+        f"#\nhello\n# Copyright (c) {year} by fake. All rights reserved."
+    )
+    copyright_checker.main(["-o", "fake", f"{f}"])
+    out = f.read()
+    assert (
+        f"#\n# Copyright (c) 2000, {year} by fake. All rights reserved.\n"
+        f"#\nhello\n# Copyright (c) {year} by fake. All rights reserved." in out
+    )
+    cap = capsys.readouterr()
+    assert f"Updating copyright: {f}" in cap.out
+
+
 def test_old_copyright_py_no_changes(tmpdir, fake_git_no_changes):
     f = tmpdir / "a.py"
     t = "#\n# Copyright (c) 2000 by fake. All rights reserved.\n#\n"
@@ -208,3 +225,21 @@ def test_no_copyright_fake_ending(capsys, tmpdir):
     copyright_checker.main(["-o", "fake", f"{f}"])
     cap = capsys.readouterr()
     assert f"Missing copyright for file {f}" in cap.out
+
+
+def test_curr_copyright_later_in_text(capsys, tmpdir):
+    year = str(datetime.date.today().year)
+    f = tmpdir / "a.py"
+    f.write(
+        '#\n#\ndef test():\n"This is a test"\n    return 1 + 1\n\n'
+        f"# Copyright (c) {year} by fake. All rights reserved."
+    )
+    copyright_checker.main(["-o", "fake", f"{f}"])
+    out = f.read()
+    assert (
+        f"#\n# Copyright (c) {year} by fake. All rights reserved.\n#\n\n"
+        '#\n#\ndef test():\n"This is a test"\n    return 1 + 1\n\n'
+        f"# Copyright (c) {year} by fake. All rights reserved." in out
+    )
+    cap = capsys.readouterr()
+    assert f"Adding copyright to {f}" in cap.out

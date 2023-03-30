@@ -243,3 +243,25 @@ def test_curr_copyright_later_in_text(capsys, tmpdir):
     )
     cap = capsys.readouterr()
     assert f"Adding copyright to {f}" in cap.out
+
+
+def test_old_copyright_py_dash_delimeter(capsys, tmpdir):
+    f = tmpdir / "a.py"
+    f.write("#\n# Copyright (c) 2000 by fake. All rights reserved.\n#\n")
+    copyright_checker.main(["-o", "fake", "--delimeter", "-", f"{f}"])
+    out = f.read()
+    year = str(datetime.date.today().year)
+    assert f"#\n# Copyright (c) 2000-{year} by fake. All rights reserved.\n#\n" in out
+    cap = capsys.readouterr()
+    assert f"Updating copyright: {f}" in cap.out
+
+
+def test_old_copyright_range_py_dash_delimeter(capsys, tmpdir):
+    f = tmpdir / "a.py"
+    f.write("#\n# Copyright (c) 2000-2020 by fake. All rights reserved.\n#\n")
+    copyright_checker.main(["-o", "fake", "--delimeter", "-", f"{f}"])
+    out = f.read()
+    year = str(datetime.date.today().year)
+    assert f"#\n# Copyright (c) 2000-{year} by fake. All rights reserved.\n#\n" in out
+    cap = capsys.readouterr()
+    assert f"Updating copyright: {f}" in cap.out

@@ -142,8 +142,9 @@ def content_head(content: str) -> str:
     """
     Return the head of the content where the copyright should be.
     """
-    # Keep the first four lines to allow for both shebang and encoding
-    lines_to_keep = 4
+    # Keep the first six lines to allow for both shebang and encoding
+    # and some leeway for empty lines
+    lines_to_keep = 6
     head = content.splitlines()[:lines_to_keep]
     return "\n".join(head)
 

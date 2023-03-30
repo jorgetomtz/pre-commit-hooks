@@ -138,8 +138,19 @@ def get_changes(repo: git.Repo, filename: str) -> str:
     return changes
 
 
+def content_head(content: str) -> str:
+    """
+    Return the head of the content where the copyright should be.
+    """
+    # Keep the first six lines to allow for both shebang and encoding
+    # and some leeway for empty lines
+    lines_to_keep = 6
+    head = content.splitlines()[:lines_to_keep]
+    return "\n".join(head)
+
+
 def check_copyright(
-    filename: str, owner: str, update: bool, repo: git.Repo, year: str
+    filename: str, owner: str, update: bool, repo: git.Repo, curr_year: str
 ) -> int:
     """
     Check the copyright of a file. Compose a basic copyright regex with
@@ -154,35 +165,36 @@ def check_copyright(
     copyright_rgx = re.compile(
         rf"Copyright \\?\(c\\?\) ([0-9]{{4}})(, [0-9]{{4}})? by {owner}"
     )
-    m = copyright_rgx.search(content)
-    if m:
-        changes = get_changes(repo, filename)
-        first = m.group(1)
-        if changes and year != first:
-            second = m.group(2)
-            if second is not None:
-                if not second.endswith(year):
-                    if update:
-                        print(f"Updating copyright: {filename}")
-                        new_copyright = m.group(0).replace(second, f", {year}")
-                        content = copyright_rgx.sub(new_copyright, content, 1)
-                        write_file(filename, content)
-                    else:
-                        print(f"Copyright is out-of-date: {filename}")
-                    return 1
+    # Search the head of the content for copyright
+    if m := copyright_rgx.search(content_head(content)):
+        full_match = m.group(0)
+        first_year, second_year = m.groups()
+        if get_changes(repo, filename) and curr_year != first_year:
+            if second_year is None:
+                # Copyright only has one year and is out-of-date
+                new_copyright = full_match.replace(
+                    first_year, f"{first_year}, {curr_year}"
+                )
+            elif not second_year.endswith(curr_year):
+                # Copyright has a year range and is out-of-date
+                new_copyright = full_match.replace(second_year, f", {curr_year}")
             else:
-                if update:
-                    print(f"Updating copyright: {filename}")
-                    new_copyright = m.group(0).replace(first, f"{first}, {year}")
-                    content = copyright_rgx.sub(new_copyright, content, 1)
-                    write_file(filename, content)
-                else:
-                    print(f"Copyright is out-of-date: {filename}")
-                return 1
-        return 0
+                # Copyright is up-to-date
+                return 0
+            if update:
+                print(f"Updating copyright: {filename}")
+                content = copyright_rgx.sub(new_copyright, content, 1)
+                write_file(filename, content)
+            else:
+                print(f"Copyright is out-of-date: {filename}")
+            return 1
+        else:
+            # Copyright is up-to-date or no changes found
+            return 0
     else:
+        # No copyright found on head of file
         if update:
-            insert_missing_copyright(filename, content, year, owner)
+            insert_missing_copyright(filename, content, curr_year, owner)
         else:
             print(f"Missing copyright for file {filename}")
         return 1

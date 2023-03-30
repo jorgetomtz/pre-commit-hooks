@@ -4,3 +4,4 @@
 *.swp
 .*coverage
 .*tox
+.*DS_Store

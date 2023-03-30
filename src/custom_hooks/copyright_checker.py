@@ -178,15 +178,19 @@ def check_copyright(
             elif not second_year.endswith(curr_year):
                 # Copyright has a year range and is out-of-date
                 new_copyright = full_match.replace(second_year, f", {curr_year}")
-            if new_copyright:
-                if update:
-                    print(f"Updating copyright: {filename}")
-                    content = copyright_rgx.sub(new_copyright, content, 1)
-                    write_file(filename, content)
-                else:
-                    print(f"Copyright is out-of-date: {filename}")
-                return 1
-        return 0
+            else:
+                # Copyright is up-to-date
+                return 0
+            if update:
+                print(f"Updating copyright: {filename}")
+                content = copyright_rgx.sub(new_copyright, content, 1)
+                write_file(filename, content)
+            else:
+                print(f"Copyright is out-of-date: {filename}")
+            return 1
+        else:
+            # Copyright is up-to-date or no changes found
+            return 0
     else:
         # No copyright found on head of file
         if update:

@@ -150,7 +150,12 @@ def content_head(content: str) -> str:
 
 
 def check_copyright(
-    filename: str, owner: str, update: bool, repo: git.Repo, curr_year: str
+    filename: str,
+    owner: str,
+    update: bool,
+    repo: git.Repo,
+    curr_year: str,
+    delimeter: str,
 ) -> int:
     """
     Check the copyright of a file. Compose a basic copyright regex with
@@ -163,7 +168,7 @@ def check_copyright(
         return 0
 
     copyright_rgx = re.compile(
-        rf"Copyright \\?\(c\\?\) ([0-9]{{4}})(, [0-9]{{4}})? by {owner}"
+        rf"Copyright \\?\(c\\?\) ([0-9]{{4}})({delimeter}[0-9]{{4}})? by {owner}"
     )
     # Search the head of the content for copyright
     if m := copyright_rgx.search(content_head(content)):
@@ -173,11 +178,13 @@ def check_copyright(
             if second_year is None:
                 # Copyright only has one year and is out-of-date
                 new_copyright = full_match.replace(
-                    first_year, f"{first_year}, {curr_year}"
+                    first_year, f"{first_year}{delimeter}{curr_year}"
                 )
             elif not second_year.endswith(curr_year):
                 # Copyright has a year range and is out-of-date
-                new_copyright = full_match.replace(second_year, f", {curr_year}")
+                new_copyright = full_match.replace(
+                    second_year, f"{delimeter}{curr_year}"
+                )
             else:
                 # Copyright is up-to-date
                 return 0
@@ -200,7 +207,9 @@ def check_copyright(
         return 1
 
 
-def copyright_checker(filenames: list[str], owner: str, update: bool) -> int:
+def copyright_checker(
+    filenames: list[str], owner: str, update: bool, delimeter: str
+) -> int:
     """
     Run copyright check on each file.
     """
@@ -208,7 +217,9 @@ def copyright_checker(filenames: list[str], owner: str, update: bool) -> int:
     repo = git.Repo(".")
     year = str(datetime.date.today().year)
     for filename in filenames:
-        result = check_copyright(filename, owner, update, repo, year) or result
+        result = (
+            check_copyright(filename, owner, update, repo, year, delimeter) or result
+        )
     return result
 
 
@@ -232,9 +243,14 @@ def main(argv: typing.Sequence[str] | None = None) -> int:
         action="store_true",
         help="Whether to skip copyright update.",
     )
+    parser.add_argument(
+        "--delimeter",
+        default=", ",
+        help="Delimeter to separate copyright range. (Default: '%(default)s').",
+    )
     args = parser.parse_args(argv)
     update = not args.no_update
-    return copyright_checker(args.filenames, args.owner, update)
+    return copyright_checker(args.filenames, args.owner, update, args.delimeter)
 
 
 if __name__ == "__main__":

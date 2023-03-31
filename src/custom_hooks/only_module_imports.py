@@ -11,7 +11,16 @@ import typing
 import astroid
 
 
-def _check_only_modules_imported(filename: str, skip_modules: list[str]) -> int:
+def _check_only_modules_imported(filename: str, skip_modules: set[str]) -> int:
+    """
+    Parse the content of the filename and inspect the ImportFrom nodes.
+    If we fail to import, we check if name imported is capitalized going
+    against the module naming convention. Otherwise, we continue.
+
+    Note: This is a best-effort approach. If libraries used in module are not
+    available in environment where hook is run, then we will always fail to
+    import and would only check based on module name heuristic.
+    """
     result = 0
     with open(filename) as f:
         content = f.read()
@@ -44,6 +53,7 @@ def _check_only_modules_imported(filename: str, skip_modules: list[str]) -> int:
                 try:
                     imported_module.import_module(name, True)
                 except astroid.AstroidImportError:
+                    # If we fail to import, this means 'name' is not a module.
                     print(
                         f"Found non-module import: '{node.as_string()}' "
                         f"in '{filename}:{node.end_lineno}'"
@@ -54,7 +64,10 @@ def _check_only_modules_imported(filename: str, skip_modules: list[str]) -> int:
     return result
 
 
-def check_only_modules_imported(filenames: list[str], skip_modules: list[str]) -> int:
+def check_only_modules_imported(filenames: list[str], skip_modules: set[str]) -> int:
+    """
+    Check if only modules are imported on each file.
+    """
     result = 0
     for filename in filenames:
         result = _check_only_modules_imported(filename, skip_modules) or result
@@ -62,6 +75,9 @@ def check_only_modules_imported(filenames: list[str], skip_modules: list[str]) -
 
 
 def main(argv: typing.Sequence[str] | None = None) -> int:
+    """
+    Best effort hook for checking only module imports.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "filenames",
@@ -71,11 +87,12 @@ def main(argv: typing.Sequence[str] | None = None) -> int:
     parser.add_argument(
         "-s",
         "--skip-modules",
+        default=[],
         type=lambda x: x.split(","),
         help="Comma-separated list of modules to skip.",
     )
     args = parser.parse_args(argv)
-    return check_only_modules_imported(args.filenames, args.skip_modules)
+    return check_only_modules_imported(args.filenames, set(args.skip_modules))
 
 
 if __name__ == "__main__":

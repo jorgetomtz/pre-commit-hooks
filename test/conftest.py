@@ -28,3 +28,8 @@ def fake_git(mocker):
 @pytest.fixture
 def fake_git_no_changes(mocker):
     mocker.patch("git.Repo", return_value=FakeGitRepo(""))
+
+
+@pytest.fixture
+def fake_git_version_changes(mocker):
+    mocker.patch("git.Repo", return_value=FakeGitRepo("+version = 0.1.0"))

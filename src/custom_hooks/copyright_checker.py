@@ -11,6 +11,8 @@ import typing
 
 import git
 
+from custom_hooks import utils
+
 COPYRIGHT = "Copyright (c) {year} by {owner}. All rights reserved."
 
 HASH_ENDINGS = {
@@ -124,20 +126,6 @@ def insert_missing_copyright(
         print(f"Missing copyright for file {filename}")
 
 
-def get_changes(repo: git.Repo, filename: str) -> str:
-    """
-    Get the changes committed for a file.
-    """
-    changes = ""
-    try:
-        changes = repo.git.diff(["@{upstream}", "@", filename])
-    except git.exc.GitCommandError:
-        # Upstream is not set or running on detached HEAD
-        # Fall back to comparing against previous commit
-        changes = repo.git.diff(["HEAD~", filename])
-    return changes
-
-
 def content_head(content: str) -> str:
     """
     Return the head of the content where the copyright should be.
@@ -169,7 +157,7 @@ def check_copyright(
     if m := copyright_rgx.search(content_head(content)):
         full_match = m.group(0)
         first_year, second_year = m.groups()
-        if get_changes(repo, filename) and curr_year != first_year:
+        if utils.get_changes(repo, filename) and curr_year != first_year:
             if second_year is None:
                 # Copyright only has one year and is out-of-date
                 new_copyright = full_match.replace(

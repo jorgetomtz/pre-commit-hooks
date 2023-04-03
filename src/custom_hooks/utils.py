@@ -3,10 +3,7 @@ Common hook utilities.
 """
 from __future__ import annotations
 
-import typing
-
-if typing.TYPE_CHECKING:
-    import git
+import git
 
 
 def get_changes(repo: git.Repo, filename: str) -> str:

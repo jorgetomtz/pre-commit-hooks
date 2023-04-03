@@ -45,6 +45,6 @@ repos:
     hooks:
       - id: only-module-imports
         name: only-module-imports
-        entry: tox -e only_module_imports --
+        entry: tox run -e only_module_imports --
         language: system
         types: [python]

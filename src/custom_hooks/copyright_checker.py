@@ -130,10 +130,13 @@ def content_head(content: str) -> str:
     """
     Return the head of the content where the copyright should be.
     """
-    # Keep the first six lines to allow for both shebang and encoding
-    # and some leeway for empty lines
-    lines_to_keep = 6
-    head = content.splitlines()[:lines_to_keep]
+    head = []
+    for line in content.splitlines():
+        if line and re.match("[A-Za-z]{1}", line[0]):
+            # This is the first line of code or docstring in file
+            # since it doesn't start with comment or space
+            break
+        head.append(line)
     return "\n".join(head)
 
 

@@ -243,3 +243,209 @@ def test_curr_copyright_later_in_text(capsys, tmpdir):
     )
     cap = capsys.readouterr()
     assert f"Adding copyright to {f}" in cap.out
+
+
+def test_chained_licenses_in_java_current_copyright(capsys, tmpdir):
+    f = tmpdir / "a.java"
+    year = str(datetime.date.today().year)
+    f.write(
+        f"""
+        /*! ****************************************************************************
+         *
+         * Other company
+         *
+         * Copyright (C) 2002-2017 by other
+         *
+         *******************************************************************************
+         *
+         * Licensed under the Apache License, Version 2.0 (the "License");
+         * you may not use this file except in compliance with
+         * the License. You may obtain a copy of the License at
+         *
+         *    http://www.apache.org/licenses/LICENSE-2.0
+         *
+         * Unless required by applicable law or agreed to in writing, software
+         * distributed under the License is distributed on an "AS IS" BASIS,
+         * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+         * See the License for the specific language governing permissions and
+         * limitations under the License.
+         *
+         ******************************************************************************/
+
+        /**
+         * Copyright (c) 2016, {year} by fake. All rights reserved.
+         */
+        package something;
+
+        import java.io.something;
+        """
+    )
+    assert copyright_checker.main(["-o", "fake", f"{f}"]) == 0
+
+
+def test_chained_licenses_in_java_old_copyright(capsys, tmpdir):
+    f = tmpdir / "a.java"
+    year = str(datetime.date.today().year)
+    f.write(
+        """
+/*! ****************************************************************************
+ *
+ * Other company
+ *
+ * Copyright (C) 2002-2017 by other
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
+/**
+ * Copyright (c) 2016, 2021 by fake. All rights reserved.
+ */
+package something;
+
+import java.io.something;
+"""
+    )
+    copyright_checker.main(["-o", "fake", f"{f}"])
+    out = f.read()
+    assert (
+        f"""
+/*! ****************************************************************************
+ *
+ * Other company
+ *
+ * Copyright (C) 2002-2017 by other
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
+/**
+ * Copyright (c) 2016, {year} by fake. All rights reserved.
+ */
+package something;
+
+import java.io.something;
+"""
+        in out
+    )
+    cap = capsys.readouterr()
+    assert f"Updating copyright: {f}" in cap.out
+
+
+def test_chained_licenses_in_java_old_copyright_andh_later(capsys, tmpdir):
+    f = tmpdir / "a.java"
+    year = str(datetime.date.today().year)
+    f.write(
+        """
+/*! ****************************************************************************
+ *
+ * Other company
+ *
+ * Copyright (C) 2002-2017 by other
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
+/**
+ * Copyright (c) 2016, 2021 by fake. All rights reserved.
+ */
+package something;
+
+import java.io.something;
+/**
+ * Copyright (c) 2016, 2023 by fake. All rights reserved.
+ */
+"""
+    )
+    copyright_checker.main(["-o", "fake", f"{f}"])
+    out = f.read()
+    assert (
+        f"""
+/*! ****************************************************************************
+ *
+ * Other company
+ *
+ * Copyright (C) 2002-2017 by other
+ *
+ *******************************************************************************
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************/
+
+/**
+ * Copyright (c) 2016, {year} by fake. All rights reserved.
+ */
+package something;
+
+import java.io.something;
+/**
+ * Copyright (c) 2016, 2023 by fake. All rights reserved.
+ */
+"""
+        in out
+    )
+    cap = capsys.readouterr()
+    assert f"Updating copyright: {f}" in cap.out
+
+
+def test_no_copyright_py_with_docstring(capsys, tmpdir):
+    f = tmpdir / "a.py"
+    f.write('"""\nSimple module"""hello world')
+    copyright_checker.main(["-o", "fake", f"{f}"])
+    out = f.read()
+    year = str(datetime.date.today().year)
+    assert (
+        f"# Copyright (c) {year} by fake. All rights reserved.\n#\n\n"
+        '"""\nSimple module"""hello world' in out
+    )
+    cap = capsys.readouterr()
+    assert f"Adding copyright to {f}" in cap.out

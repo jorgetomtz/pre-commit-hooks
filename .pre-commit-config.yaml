@@ -40,11 +40,3 @@ repos:
         entry: tox
         language: system
         pass_filenames: false
-
-  - repo: local
-    hooks:
-      - id: only-module-imports
-        name: only-module-imports
-        entry: tox run -e only_module_imports --
-        language: system
-        types: [python]

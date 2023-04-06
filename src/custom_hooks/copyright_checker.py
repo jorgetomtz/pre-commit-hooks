@@ -133,8 +133,11 @@ def content_head(content: str) -> str:
     head = []
     for line in content.splitlines():
         if line and re.match("[A-Za-z]{1}", line[0]):
-            # This is the first line of code or docstring in file
-            # since it doesn't start with comment or space
+            # We consider the first line of "code" to be the first line
+            # with a leading character in the alphabet. We are loose
+            # about this definition to ensure "head" is broad enough
+            # without having to actually determine if a line is code or not
+            # with full certainty.
             break
         head.append(line)
     return "\n".join(head)

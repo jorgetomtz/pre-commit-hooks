@@ -449,3 +449,14 @@ def test_no_copyright_py_with_docstring(capsys, tmpdir):
     )
     cap = capsys.readouterr()
     assert f"Adding copyright to {f}" in cap.out
+
+
+def test_no_copyright_empty_lua(capsys, tmpdir):
+    f = tmpdir / "a.lua"
+    f.write("")
+    copyright_checker.main(["-o", "fake", f"{f}"])
+    out = f.read()
+    year = str(datetime.date.today().year)
+    assert f"--\n-- Copyright (c) {year} by fake. All rights reserved.\n--\n" in out
+    cap = capsys.readouterr()
+    assert f"Adding copyright to {f}" in cap.out

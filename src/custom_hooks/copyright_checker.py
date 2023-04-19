@@ -33,7 +33,7 @@ HASH_ENDINGS = {
     "yml",
 }
 
-LUA_ENDINGS = {"lua"}
+DASH_ENDINGS = {"lua"}
 
 MD_ENDINGS = {"md"}
 
@@ -75,7 +75,7 @@ def wrap_copyright(filename: str, new_copyright: str) -> str:
     ending = filename.split(".")[-1]
     if ending in HASH_ENDINGS:
         wrapped = f"#\n# {new_copyright}\n#\n"
-    elif ending in LUA_ENDINGS:
+    elif ending in DASH_ENDINGS:
         wrapped = f"--\n-- {new_copyright}\n--\n"
     elif ending in MD_ENDINGS:
         escaped_copyright = new_copyright.replace("(", r"\(").replace(")", r"\)")

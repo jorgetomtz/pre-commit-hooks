@@ -38,7 +38,7 @@ DASH_ENDINGS = {"lua"}
 
 MD_ENDINGS = {"md"}
 
-STAR_ENDINGS = {"gradle", "groovy", "java", "js", "ts"}
+STAR_ENDINGS = {"gradle", "groovy", "java", "js", "ts", "css"}
 
 
 def read_file(filename: str) -> str | None:

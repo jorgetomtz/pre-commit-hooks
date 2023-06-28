@@ -31,6 +31,7 @@ HASH_ENDINGS = {
     "toml",
     "yaml",
     "yml",
+    ".gitignore",
 }
 
 DASH_ENDINGS = {"lua"}

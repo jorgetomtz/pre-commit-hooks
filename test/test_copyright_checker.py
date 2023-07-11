@@ -460,3 +460,31 @@ def test_no_copyright_empty_lua(capsys, tmpdir):
     assert f"--\n-- Copyright (c) {year} by fake. All rights reserved.\n--\n" in out
     cap = capsys.readouterr()
     assert f"Adding copyright to {f}" in cap.out
+
+
+def test_no_copyright_dockerfile(capsys, tmpdir):
+    f = tmpdir / "Dockerfile"
+    f.write("FROM alpine:3")
+    copyright_checker.main(["-o", "fake", f"{f}"])
+    out = f.read()
+    year = str(datetime.date.today().year)
+    assert (
+        f"#\n# Copyright (c) {year} by fake. All rights reserved.\n#\n\n"
+        "FROM alpine:3" in out
+    )
+    cap = capsys.readouterr()
+    assert f"Adding copyright to {f}" in cap.out
+
+
+def test_old_copyright_gitignore(capsys, tmpdir):
+    f = tmpdir / ".gitignore"
+    f.write("#\n# Copyright (c) 2000 by fake. All rights reserved.\n#\n\n\n*egg*\n")
+    copyright_checker.main(["-o", "fake", f"{f}"])
+    out = f.read()
+    year = str(datetime.date.today().year)
+    assert (
+        f"#\n# Copyright (c) 2000, {year} by fake. All rights reserved.\n#\n"
+        "\n\n*egg*\n" in out
+    )
+    cap = capsys.readouterr()
+    assert f"Updating copyright: {f}" in cap.out

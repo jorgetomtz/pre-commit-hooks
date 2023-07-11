@@ -31,7 +31,7 @@ HASH_ENDINGS = {
     "toml",
     "yaml",
     "yml",
-    ".gitignore",
+    "gitignore",
 }
 
 DASH_ENDINGS = {"lua"}
@@ -73,7 +73,7 @@ def wrap_copyright(filename: str, new_copyright: str) -> str:
     Wrap copyright into ending specific comments.
     """
     wrapped = ""
-    ending = filename.split(".")[-1]
+    ending = os.path.basename(filename).split(".")[-1]
     if ending in HASH_ENDINGS:
         wrapped = f"#\n# {new_copyright}\n#\n"
     elif ending in DASH_ENDINGS:

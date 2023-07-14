@@ -204,7 +204,7 @@ def copyright_checker(filenames: list[str], owner: str, update: bool) -> int:
     Run copyright check on each file.
     """
     result = 0
-    repo = git.Repo(os.getenv("GIT_REPO_DIR", "."))
+    repo = git.Repo(".", search_parent_directories=True)
     year = str(datetime.date.today().year)
     for filename in filenames:
         abs_filename = os.path.abspath(filename)

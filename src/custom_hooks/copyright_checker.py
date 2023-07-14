@@ -209,7 +209,6 @@ def copyright_checker(filenames: list[str], owner: str, update: bool) -> int:
     for filename in filenames:
         abs_filename = os.path.abspath(filename)
         result = check_copyright(abs_filename, owner, update, repo, year) or result
-
     return result
 
 

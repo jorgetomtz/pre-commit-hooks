@@ -204,10 +204,11 @@ def copyright_checker(filenames: list[str], owner: str, update: bool) -> int:
     Run copyright check on each file.
     """
     result = 0
-    repo = git.Repo(".")
+    repo = git.Repo(".", search_parent_directories=True)
     year = str(datetime.date.today().year)
     for filename in filenames:
-        result = check_copyright(filename, owner, update, repo, year) or result
+        abs_filename = os.path.abspath(filename)
+        result = check_copyright(abs_filename, owner, update, repo, year) or result
     return result
 
 

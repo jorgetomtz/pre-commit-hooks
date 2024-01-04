@@ -11,7 +11,6 @@ import typing
 
 import git
 
-
 COPYRIGHT = "Copyright (c) {year} by {owner}. All rights reserved."
 
 HASH_ENDINGS = {
@@ -40,15 +39,25 @@ MD_ENDINGS = {"md"}
 STAR_ENDINGS = {"gradle", "groovy", "java", "js", "ts", "css"}
 
 
-def file_authored(repo, filename):
+def file_authored(repo: git.Repo, filename: str) -> int | None:
+    """
+    Return the year that the file was last modified in git or None if
+    it is not in the git history.
+    """
     updated_timestamp = repo.git.log("--format=%at", "-1", "--", filename)
     if not updated_timestamp:
         return None
     return datetime.datetime.utcfromtimestamp(int(updated_timestamp)).year
 
 
-def file_staged(repo, filename):
-    staged_files = [os.path.join(repo.working_dir, f.a_path) for f in repo.index.diff("HEAD")]
+def file_staged(repo: git.Repo, filename: str) -> bool:
+    """
+    Return True if the file is currently staged in git, False
+    otherwise
+    """
+    staged_files = [
+        os.path.join(repo.working_dir, f.a_path) for f in repo.index.diff("HEAD")
+    ]
     return filename in staged_files
 
 
@@ -219,10 +228,7 @@ def check_copyright(
                 )
             else:
                 # Copyright has a year range and is out-of-date
-                new_copyright = full_match.replace(
-                    str(second_year),
-                    f"{curr_year}"
-                )
+                new_copyright = full_match.replace(str(second_year), f"{curr_year}")
 
             if update:
                 print(f"Updating copyright: {filename}")

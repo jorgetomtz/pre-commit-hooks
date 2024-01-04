@@ -7,12 +7,14 @@ class FakeDiff:
     def __init__(self, a_path):
         self.a_path = a_path
 
+
 class FakeIndex:
     def __init__(self, diffs):
         self.diffs = diffs
 
     def diff(self, *args, **kwargs):
         return self.diffs
+
 
 class FakeGit:
     def __init__(self, changes, date):

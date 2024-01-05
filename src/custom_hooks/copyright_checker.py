@@ -205,11 +205,12 @@ def check_copyright(
         # If we know that the copyright might be out of date we can
         # check the last year and compare that with the current year.
         #
+        author_year = file_authored(repo, filename)
         should_check = False
-        if not file_authored(repo, filename):
+        if not author_year:
             should_check = True
             print(f"File is not yet in git: {filename}")
-        elif file_authored(repo, filename) == curr_year:
+        elif author_year == curr_year:
             should_check = True
             print(f"File was updated this year: {filename}")
         elif file_staged(repo, filename):

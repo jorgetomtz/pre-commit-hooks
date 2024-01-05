@@ -116,7 +116,8 @@ def test_multiple_one_new_one_old_copyright_py(capsys, tmpdir):
     assert f"Updating copyright: {f}" in cap.out
 
 
-def test_old_copyright_py_no_changes(tmpdir, fake_git_no_changes):
+@pytest.mark.parametrize("date,changes", [("1", "")])
+def test_old_copyright_py_no_changes(tmpdir, date, changes):
     f = tmpdir / "a.py"
     t = "#\n# Copyright (c) 2000 by fake. All rights reserved.\n#\n"
     f.write(t)

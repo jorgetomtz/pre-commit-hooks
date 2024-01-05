@@ -11,8 +11,6 @@ import typing
 
 import git
 
-from custom_hooks import utils
-
 COPYRIGHT = "Copyright (c) {year} by {owner}. All rights reserved."
 
 HASH_ENDINGS = {
@@ -39,6 +37,28 @@ DASH_ENDINGS = {"lua"}
 MD_ENDINGS = {"md"}
 
 STAR_ENDINGS = {"gradle", "groovy", "java", "js", "ts", "css"}
+
+
+def file_authored(repo: git.Repo, filename: str) -> int | None:
+    """
+    Return the year that the file was last modified in git or None if
+    it is not in the git history.
+    """
+    updated_timestamp = repo.git.log("--format=%at", "-1", "--", filename)
+    if not updated_timestamp:
+        return None
+    return datetime.datetime.utcfromtimestamp(int(updated_timestamp)).year
+
+
+def file_staged(repo: git.Repo, filename: str) -> bool:
+    """
+    Return True if the file is currently staged in git, False
+    otherwise
+    """
+    staged_files = {
+        os.path.join(repo.working_dir, f.a_path) for f in repo.index.diff("HEAD")
+    }
+    return filename in staged_files
 
 
 def read_file(filename: str) -> str | None:
@@ -111,7 +131,7 @@ def get_index_after_special_lines(content: str) -> int:
 
 
 def insert_missing_copyright(
-    filename: str, content: str, year: str, owner: str
+    filename: str, content: str, year: int, owner: str
 ) -> None:
     """
     Insert missing copyright.
@@ -149,7 +169,7 @@ def content_head(content: str) -> str:
 
 
 def check_copyright(
-    filename: str, owner: str, update: bool, repo: git.Repo, curr_year: str
+    filename: str, owner: str, update: bool, repo: git.Repo, curr_year: int
 ) -> int:
     """
     Check the copyright of a file. Compose a basic copyright regex with
@@ -166,20 +186,51 @@ def check_copyright(
     )
     # Search the head of the content for copyright
     if m := copyright_rgx.search(content_head(content)):
+        #
+        # At this point we know the file has a copyright we just need
+        # to determine whether or not it is out of date and if so
+        # update it.
+        #
         full_match = m.group(0)
-        first_year, second_year = m.groups()
-        if utils.get_changes(repo, filename) and curr_year != first_year:
+        first_year = int(m.group(1))
+        second_year = int(m.group(2)[2:]) if m.group(2) else None
+        last_year = second_year or first_year
+
+        #
+        # We know that a file is a candidate to have an old copyright if:
+        #  - The file is not in git
+        #  - The file was updated in git this year
+        #  - The file is currently staged to be added to git
+        #
+        # If we know that the copyright might be out of date we can
+        # check the last year and compare that with the current year.
+        #
+        author_year = file_authored(repo, filename)
+        should_check = False
+        if not author_year:
+            should_check = True
+            print(f"File is not yet in git: {filename}")
+        elif author_year == curr_year:
+            should_check = True
+            print(f"File was updated this year: {filename}")
+        elif file_staged(repo, filename):
+            should_check = True
+            print(f"File is staged to be committed: {filename}")
+
+        if should_check and last_year < curr_year:
+            #
+            # At this point we know that the copyright is out of date
+            #
             if second_year is None:
                 # Copyright only has one year and is out-of-date
                 new_copyright = full_match.replace(
-                    first_year, f"{first_year}, {curr_year}"
+                    str(first_year),
+                    f"{first_year}, {curr_year}",
                 )
-            elif not second_year.endswith(curr_year):
-                # Copyright has a year range and is out-of-date
-                new_copyright = full_match.replace(second_year, f", {curr_year}")
             else:
-                # Copyright is up-to-date
-                return 0
+                # Copyright has a year range and is out-of-date
+                new_copyright = full_match.replace(str(second_year), f"{curr_year}")
+
             if update:
                 print(f"Updating copyright: {filename}")
                 content = copyright_rgx.sub(new_copyright, content, 1)
@@ -205,7 +256,7 @@ def copyright_checker(filenames: list[str], owner: str, update: bool) -> int:
     """
     result = 0
     repo = git.Repo(".", search_parent_directories=True)
-    year = str(datetime.date.today().year)
+    year = datetime.date.today().year
     for filename in filenames:
         abs_filename = os.path.abspath(filename)
         result = check_copyright(abs_filename, owner, update, repo, year) or result

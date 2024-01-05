@@ -55,9 +55,9 @@ def file_staged(repo: git.Repo, filename: str) -> bool:
     Return True if the file is currently staged in git, False
     otherwise
     """
-    staged_files = [
+    staged_files = {
         os.path.join(repo.working_dir, f.a_path) for f in repo.index.diff("HEAD")
-    ]
+    }
     return filename in staged_files
 
 
